@@ -127,7 +127,7 @@ const S = [
 ];
 const L = [
   [0,"Soitto alkaa, laulu lähtee kohta"],
-  [1,"Pikkusisko, paras ystävä, sulle kertoo kaiken saa"],
+  [1,"Pikkusisko, paras frendi, sulle kertoo kaiken saan"],
   [1,"Eevu Okei!",1],
   [1,"Nauretaan ja itketään, ei mitään tarvii piilottaa"],
   [1,"Eevu Okei!",1],
@@ -139,21 +139,21 @@ const L = [
   [2,"Eevu Okei!",1],
   [2,"Joulut aina Heikuroilla, mummin pulla meille paistui"],
   [2,"Eevu Okei!",1],
-  [2,"Disney on Ice ja hevosshow’hun"],
-  [2,"aina koko porukka mukaan,"],
+  [2,"Disney on Ice ja heppashow’hun"],
+  [2,"aina koko jengi mukaan,"],
   [2,"ja parasta lahjaa oli aika yhteinen"],
   [2,"Eevu Okei!",1],
   [3,"Eevu!",1],
   [3,"Okei!",1],
   [3,"Eevu!",1],
   [4,"♪ soitinosuus ♪"],
-  [4,"Sanojen maisteri, säät ja kirkko sulla hallussa"],
+  [4,"Sanojen maisteri, säät ja kirkko hallussa"],
   [4,"Eevu Okei!",1],
-  [4,"Viiskymppisenä papiksi, ja väikkäri on tulossa"],
+  [4,"Viisikymppisenä papiksi, ja väikkäri on tekeil"],
   [4,"Eevu Okei!",1],
   [4,"Viilipytty, hermot hallinnassa,"],
   [4,"koko suku sun paimennuksessa,"],
-  [4,"veli sammui ja sai hyllyynsä lasipossun"],
+  [4,"Pikkuveli sammui, sai hyllyyn lasipossun"],
   [4,"Eevu Okei!",1],
   [5,"Eevu!",1],
   [5,"Okei!",1],
@@ -220,7 +220,7 @@ function tick(){
     const ws=stage.querySelectorAll(".cur .w"); if(ws.length){
       const wt=WORDT[cur];
       if(wt&&ws.length===wt.length+1){
-        ws.forEach((w,i)=>{const start=i===0?a:wt[i-1]/fileRate+offset-0.1; w.classList.toggle("on",t>=start);});
+        ws.forEach((w,i)=>{const start=i===0?a+0.3:wt[i-1]/fileRate+offset-0.1; w.classList.toggle("on",t>=start);});
       } else {
         const total=L[cur].t.length; let acc=0;
         ws.forEach(w=>{acc+=w.textContent.length; w.classList.toggle("on",acc-w.textContent.length/2<=p*total);});
