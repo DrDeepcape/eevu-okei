@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eevu Okei! - studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EA; --ink:#0F2E31; --dim:#7D928F; --lakka:#C9701A; --line:#CFD8D2; --panel:#E2E8E1;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E2A2E; --ink:#F2F5EF; --dim:#5F7F7C; --lakka:#F4A63B; --line:#1F4448; --panel:#133539;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E2A2E; --ink:#F2F5EF; --dim:#5F7F7C; --lakka:#F4A63B; --line:#1F4448; --panel:#133539;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Bricolage Grotesque",ui-rounded,"Avenir Next","Segoe UI",system-ui,sans-serif;
+  display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;
+}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:1.2rem 2rem 0}
+.brand{font-weight:800;font-size:clamp(1.1rem,2vw,1.6rem);letter-spacing:-.01em}
+.brand span{color:var(--lakka)}
+.who{font-size:clamp(1rem,2.2vw,1.7rem);font-weight:600;color:var(--lakka);text-align:right}
+.who small{display:block;font-weight:400;color:var(--dim);font-size:.6em}
+
+main{display:flex;flex-direction:column;justify-content:center;padding:0 4vw;min-height:0}
+.ln{
+  font-size:clamp(1.1rem,3.2vw,2.6rem);line-height:1.25;color:var(--dim);
+  margin:.25em 0;font-weight:400;min-height:1.25em;
+}
+.ln.prev{opacity:.45}
+.ln.cur{
+  font-size:clamp(1.8rem,6vw,5.2rem);font-weight:800;line-height:1.08;letter-spacing:-.015em;margin:.35em 0;
+  color:var(--ink);
+}
+.ln.cur .w.on{color:var(--lakka)}
+.ln.cur.hook{font-size:clamp(2.4rem,9vw,8rem)}
+.ln.cur.manual.hook{color:var(--lakka)}
+@media (prefers-reduced-motion:no-preference){
+  .ln.cur{animation:rise .28s ease-out}
+  @keyframes rise{from{transform:translateY(.25em);opacity:.4}to{transform:none;opacity:1}}
+}
+
+.empty{max-width:34rem}
+.empty h1{font-size:clamp(2.4rem,7vw,5.5rem);margin:0 0 .2em;font-weight:800;letter-spacing:-.02em;line-height:1}
+.empty h1 span{color:var(--lakka)}
+.empty p{font-size:1.15rem;line-height:1.5;color:var(--dim);margin:.6em 0}
+
+footer{
+  display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;padding:.8rem 2rem 1.2rem;
+  border-top:1px solid var(--line);background:var(--panel);transition:opacity .3s;
+}
+body.hide-ui footer{opacity:0;pointer-events:none}
+button,.file{
+  font:inherit;font-size:1rem;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  padding:.55em 1em;border-radius:999px;cursor:pointer;
+}
+button:focus-visible,.file:focus-within{outline:3px solid var(--lakka);outline-offset:2px}
+button.go{background:var(--lakka);border-color:var(--lakka);color:#fff}
+button.rec{background:#B3261E;border-color:#B3261E;color:#fff}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.status{color:var(--dim);font-size:.95rem;margin-left:auto}
+.bar{flex-basis:100%;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--lakka)}
+#tap{
+  display:none;position:fixed;right:2rem;bottom:calc(6.5rem + env(safe-area-inset-bottom,0px));
+  font-size:1.4rem;padding:1em 1.6em;border-radius:1.2rem;
+}
+body.syncing #tap{display:block}
+@media (max-width:640px){header,footer{padding-left:1rem;padding-right:1rem}.status{margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Eevu <span>Okei!</span> studio</div>
+  <div class="who" id="who"></div>
+</header>
+
+<main id="stage">
+  <div class="empty" id="empty">
+    <h1>Eevu <span>Okei!</span></h1>
+    <p>Äänitä oma laulusi taustan päälle. Laita kuulokkeet päähän, valitse taustatiedosto, kirjoita nimesi ja paina Äänitä. Tausta soi kuulokkeissa ja mikrofoni tallentaa laulun.</p>
+    <p>Kun laulu on valmis, paina Kuuntele ja lopuksi Lataa WAV. Lähetä tiedosto Antille.</p>
+  </div>
+</main>
+
+<footer>
+  <label class="file">Valitse kappale<input type="file" id="file" accept="audio/*,.m4a,.mp3,.wav,audio/mp4,audio/x-m4a"></label>
+  <button id="play" class="go">Soita</button>
+  <button id="restart">Alkuun</button>
+  <input id="name" placeholder="Nimesi" style="font:inherit;padding:.5em .9em;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:9em">
+  <button id="rec" class="rec">Äänitä</button>
+  <button id="listen" disabled>Kuuntele</button>
+  <label style="color:var(--dim);font-size:.95rem">Laulu <input id="vol" type="range" min="0" max="2" step="0.05" value="1" style="vertical-align:middle"></label>
+  <button id="dl" disabled>Lataa WAV</button>
+  <button id="full">Koko näyttö</button>
+  <button id="sync" hidden></button><button id="early" hidden></button><button id="late" hidden></button><button id="more" hidden></button><button id="tempo" hidden></button>
+  <span class="status" id="status"></span>
+  <div class="bar"><i id="prog"></i></div>
+</footer>
+
+<audio id="au" preload="auto"></audio>
+<audio id="voc" preload="auto"></audio>
+
+<script>
+const S = [
+  {name:"Intro", lead:"Kaikki valmiina"},
+  {name:"Säkeistö 1", lead:"Edessä Anni-Mari"},
+  {name:"Säkeistö 2", lead:"Edessä nuoriso"},
+  {name:"Kertosäe", lead:"Kaikki"},
+  {name:"Säkeistö 3", lead:"Edessä Antti ja Katja"},
+  {name:"Loppu", lead:"Kaikki, täysillä"}
+];
+const L = [
+  [0,"Soitto alkaa, laulu lähtee kohta"],
+  [1,"Pikkusisko, paras frendi, sulle kertoo kaiken saan"],
+  [1,"Eevu Okei!",1],
+  [1,"Nauretaan ja itketään, ei mitään tarvii piilottaa"],
+  [1,"Eevu Okei!",1],
+  [1,"Sä oot cool ja rauhaa rakennat,"],
+  [1,"mut rajan vedät, kun se tarvitaan,"],
+  [1,"Torniojoen vaarat, sut aina luontoon vie"],
+  [1,"Eevu Okei!",1],
+  [2,"Hoidos me pelattiin, ja leivottiin, ja safka maistui"],
+  [2,"Eevu Okei!",1],
+  [2,"Joulut aina Heikuroilla, mummin pulla meille paistui"],
+  [2,"Eevu Okei!",1],
+  [2,"Disney on Ice ja heppashow"],
+  [2,"aina koko jengi kutsuttiin,"],
+  [2,"ja paras lahja, oli aika yhteinen"],
+  [2,"Eevu Okei!",1],
+  [3,"Eevu!",1],
+  [3,"Okei!",1],
+  [3,"Eevu!",1],
+  [4,"♪ soitinosuus ♪"],
+  [4,"Sanojen maisteri, säät ja kirkko hallussa"],
+  [4,"Eevu Okei!",1],
+  [4,"Viisikymppisenä papiksi, ja väikkäri on tekeil"],
+  [4,"Eevu Okei!",1],
+  [4,"Viilipytty, hermot hallinnassa,"],
+  [4,"koko suku sun paimennuksessa,"],
+  [4,"Pikkuveli sammui, sai hyllyyn lasipossun"],
+  [4,"Eevu Okei!",1],
+  [5,"Eevu!",1],
+  [5,"Okei!",1],
+  [5,"Eevu!",1],
+  [5,"Okei!",1],
+  [5,"Eevu!",1],
+  [5,"Okei!",1],
+  [5,"Aaaaa... KUUSKYT OKEI!",1]
+].map(([s,t,h])=>({s,t,h:!!h}));
+
+// Timed from the isolated vocal track of the original recording
+const EST=[0,7.5,11.13,14.62,18.46,21.95,25.78,29.74,33.2,36.89,40.61,44.18,48.02,51.53,55.39,59.3,62.75,69.16,72.96,76.52,80.69,113.97,117.88,121.22,125.27,128.8,132.67,136.51,140.07,143.66,145.63,147.37,149.34,151.1,153.03,155.29].map((x,i)=>i?Math.max(0,x-0.15):0);
+const KEY="eevu-ok-times-v6";
+// Measured start times of the 2nd (and 3rd) word in hook lines, from the vocal track
+const WORDT={2:[12.97],4:[20.31],8:[35.02],10:[42.41],12:[49.85],16:[64.67],22:[119.57],24:[127.11],28:[141.97],35:[158.30,159.01]};
+// When the singing of each line ends (from the vocal track)
+const END=[7.5,11.08,13.74,18.44,21.11,25.42,29.48,33.16,35.84,40.58,43.36,47.98,50.77,55.26,59.1,62.64,65.56,70.18,73.89,77.56,113.97,117.87,120.58,125.23,127.91,132.51,136.33,140.01,142.78,144.8,146.62,148.47,150.29,152.22,154,159.56];
+
+const $=id=>document.getElementById(id);
+const au=$("au"), stage=$("stage");
+let times=load(), synced=true, cur=0, syncing=false, hasAudio=false, fileName="";
+let offset=0; try{offset=parseFloat(localStorage.getItem(KEY+"-off"))||0}catch(e){}
+let fileRate=1;
+function T(k){return times[k]/fileRate+offset}
+
+function localStorage_get(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function load(){
+  try{const v=JSON.parse(localStorage.getItem(KEY)); if(Array.isArray(v)&&v.length===L.length) return v;}catch(e){}
+  return EST.slice();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(times))}catch(e){}}
+
+function render(){
+  const el=$("empty"); if(el) el.remove();
+  const i=cur, rows=[];
+  const mk=(k,cls)=>{const d=document.createElement("div"); const x=L[k];
+    d.className="ln "+cls+(x&&x.h?" hook":"")+(!hasAudio||syncing?" manual":"");
+    if(!x) return d;
+    if(cls==="cur"){ x.t.split(" ").forEach((w,i,arr)=>{const sp=document.createElement("span"); sp.className="w"; sp.textContent=w+(i<arr.length-1?" ":""); d.appendChild(sp);}); }
+    else d.textContent=x.t;
+    return d;};
+  rows.push(mk(i-1,"prev")); rows.push(mk(i,"cur")); rows.push(mk(i+1,"next")); rows.push(mk(i+2,"next"));
+  stage.replaceChildren(...rows);
+  const s=S[L[i].s]; $("who").innerHTML=s.lead+"<small>"+s.name+"</small>";
+}
+function setCur(i,force){i=Math.max(0,Math.min(L.length-1,i)); if(i!==cur||force){cur=i;render();}}
+function idxAt(t){let i=0; for(let k=0;k<L.length;k++){if(T(k)<=t+0.05)i=k;} return i;}
+
+function status(){
+  let m;
+  if(syncing) m="Tahdistus käynnissä: paina välilyöntiä aina kun uusi rivi alkaa ("+(cur+1)+"/"+L.length+")";
+  else if(!hasAudio) m="Ei kappaletta: nuolet ↑ ↓ vaihtavat riviä";
+  else m="Valmis. Kuulokkeet päähän ja paina Äänitä ("+fileName+")"+(fileRate!==1?" - hidastettu tiedosto "+Math.round(fileRate*100)+" %, sanat skaalattu":"")+(offset?" - siirto "+(offset>0?"+":"")+offset.toFixed(1)+" s":"");
+  $("status").textContent=m;
+}
+
+function tick(){
+  if(hasAudio&&!syncing&&!au.paused){
+    const t=au.currentTime, i=idxAt(t);
+    if(i!==cur) setCur(i);
+    const a=T(cur), nx=cur+1<L.length?T(cur+1):(au.duration||a+4);
+    let b=END[cur]/fileRate+offset; if(!(b>a&&b<=nx+0.5)) b=a+(nx-a)*.85;
+    const p=Math.max(0,Math.min(1,(t-a)/Math.max(.3,b-a)));
+    const ws=stage.querySelectorAll(".cur .w"); if(ws.length){
+      const wt=WORDT[cur];
+      if(wt&&ws.length===wt.length+1){
+        ws.forEach((w,i)=>{const start=i===0?a+0.3:wt[i-1]/fileRate+offset-0.1; w.classList.toggle("on",t>=start);});
+      } else {
+        const total=L[cur].t.length; let acc=0;
+        ws.forEach(w=>{acc+=w.textContent.length; w.classList.toggle("on",acc-w.textContent.length/2<=p*total);});
+      }
+    }
+  }
+  if(hasAudio&&au.duration) $("prog").style.width=(au.currentTime/au.duration*100)+"%";
+  requestAnimationFrame(tick);
+}
+
+// audio file + IndexedDB memory
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("eevu-ok",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("f"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});}
+async function storeFile(f){try{const db=await idb(); db.transaction("f","readwrite").objectStore("f").put(f,"song");}catch(e){}}
+async function loadStored(){try{const db=await idb(); return await new Promise(r=>{const q=db.transaction("f").objectStore("f").get("song"); q.onsuccess=()=>r(q.result); q.onerror=()=>r(null);});}catch(e){return null}}
+function useFile(f){ if(!f) return; au.src=URL.createObjectURL(f); hasAudio=true; fileName=f.name||"kappale";
+  const m=/(?:hidastettu_?|_)(70|80|90)(?:pros)?\.(m4a|mp3|wav)$/i.exec(fileName); fileRate=m?parseInt(m[1],10)/100:1;
+  setCur(0,true); status(); }
+$("file").addEventListener("change",e=>{const f=e.target.files[0]; if(f){useFile(f); storeFile(f);}});
+
+function playPause(){ if(!hasAudio) return; if(au.paused){au.play(); $("play").textContent="Tauko";} else {au.pause(); $("play").textContent="Soita";} }
+au.addEventListener("pause",()=>{$("play").textContent="Soita"; document.body.classList.remove("hide-ui")});
+au.addEventListener("play",()=>{$("play").textContent="Tauko"; idleUI()});
+au.addEventListener("ended",()=>{ if(syncing) endSync(); });
+$("play").onclick=playPause;
+$("restart").onclick=()=>{ if(hasAudio) au.currentTime=0; setCur(0,true); };
+
+function startSync(){
+  if(!hasAudio){alert("Valitse ensin kappaletiedosto."); return;}
+  syncing=true; document.body.classList.add("syncing");
+  times=new Array(L.length).fill(1e9); times[0]=0;
+  au.currentTime=0; setCur(0,true); au.play(); $("sync").textContent="Lopeta tahdistus"; status();
+}
+function mark(){
+  if(cur+1>=L.length){endSync();return;}
+  times[cur+1]=au.currentTime; setCur(cur+1,true); status();
+}
+function endSync(){
+  syncing=false; document.body.classList.remove("syncing"); $("sync").textContent="Tahdista sanat";
+  for(let k=1;k<L.length;k++) if(times[k]>=1e9) times[k]=times[k-1]+3;
+  save(); synced=true; au.pause(); setCur(0,true); status();
+}
+$("sync").onclick=()=>syncing?endSync():startSync();
+$("tap").onclick=mark;
+
+$("full").onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
+function shift(d){offset=Math.round((offset+d)*10)/10; try{localStorage.setItem(KEY+"-off",offset)}catch(e){} if(hasAudio) setCur(idxAt(au.currentTime),true); status();}
+$("early").onclick=()=>shift(-0.3); $("late").onclick=()=>shift(0.3);
+const TEMPOS=[1,0.9,0.8,0.7]; let ti=0;
+$("tempo").onclick=()=>{ti=(ti+1)%TEMPOS.length; au.playbackRate=TEMPOS[ti]; try{au.preservesPitch=true; au.mozPreservesPitch=true;}catch(e){} $("tempo").textContent="Tempo "+Math.round(TEMPOS[ti]*100)+" %";};
+$("more").onclick=()=>{
+  const v=prompt("Kopioi tämä ajastus talteen tai liitä tähän aiemmin tallennettu ajastus:",JSON.stringify(times.map(x=>+x.toFixed(2))));
+  if(!v) return;
+  try{const a=JSON.parse(v); if(Array.isArray(a)&&a.length===L.length){times=a; save(); synced=true; status();}}catch(e){alert("Ajastusta ei voitu lukea. Liitä koko hakasulkeilla alkava rivi.");}
+};
+
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT") return;
+  if(e.code==="Space"){e.preventDefault(); if(typeof recording!=="undefined"&&recording){recorder.stop();return;} syncing?mark():(hasAudio?playPause():setCur(cur+1));}
+  else if(e.key==="ArrowDown"||e.key==="ArrowRight"){e.preventDefault(); if(syncing) return; setCur(cur+1,true); if(hasAudio) au.currentTime=T(cur);}
+  else if(e.key==="ArrowUp"||e.key==="ArrowLeft"){e.preventDefault(); if(syncing) return; setCur(cur-1,true); if(hasAudio) au.currentTime=T(cur);}
+  else if(e.key==="f"||e.key==="F"){$("full").click();}
+  else if(e.key==="-"){shift(-0.3);} else if(e.key==="+"){shift(0.3);}
+  document.body.classList.remove("hide-ui"); idleUI();
+});
+let idleT; function idleUI(){clearTimeout(idleT); idleT=setTimeout(()=>{if(!au.paused&&!syncing&&!(typeof recording!=="undefined"&&recording))document.body.classList.add("hide-ui")},3000);}
+document.addEventListener("mousemove",()=>{document.body.classList.remove("hide-ui"); idleUI();});
+
+
+// ---- STUDIO ----
+const voc=$("voc"); let recorder=null, chunks=[], recBlob=null, recStartAudioTime=0, recording=false, recDelay=0;
+let vgain=null, actx=null;
+function setStatus(m){$("status").textContent=m;}
+$("rec").onclick=async()=>{
+  if(recording){ recorder.stop(); return; }
+  if(!hasAudio){alert("Valitse ensin taustatiedosto."); return;}
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
+  catch(e){ alert("Mikrofonia ei saatu käyttöön: "+e.message); return; }
+  const mime=["audio/webm;codecs=opus","audio/mp4","audio/webm",""].find(m=>!m||MediaRecorder.isTypeSupported(m));
+  recorder=new MediaRecorder(stream, mime?{mimeType:mime}:undefined); chunks=[];
+  recorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  recorder.onstart=()=>{ recStartAudioTime=au.currentTime; };
+  recorder.onstop=()=>{ recording=false; stream.getTracks().forEach(t=>t.stop()); au.pause();
+    recBlob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"}); voc.src=URL.createObjectURL(recBlob);
+    $("rec").textContent="Äänitä uudelleen"; $("listen").disabled=false; $("dl").disabled=false; document.body.classList.remove("syncing");
+    setStatus("Äänitys valmis ("+Math.round(au.currentTime)+" s). Kuuntele tai lataa WAV."); };
+  au.pause(); au.currentTime=0; setCur(0,true); au.muted=false; voc.pause();
+  recorder.start(250); recording=true; document.body.classList.add("syncing");
+  await au.play(); $("rec").textContent="Lopeta äänitys"; setStatus("Äänitys käynnissä. Laula kuulokkeet päässä. Paina Lopeta, kun kappale loppuu.");
+};
+au.addEventListener("ended",()=>{ if(recording) recorder.stop(); });
+$("listen").onclick=()=>{
+  if(!recBlob) return;
+  if(!au.paused){ au.pause(); voc.pause(); $("listen").textContent="Kuuntele"; return; }
+  au.currentTime=0; setCur(0,true); voc.currentTime=0; voc.volume=Math.min(1,+$("vol").value);
+  au.play(); voc.play(); $("listen").textContent="Pysäytä";
+  const sync=()=>{ if(au.paused){voc.pause();return;} const want=au.currentTime-recStartAudioTime; if(Math.abs(voc.currentTime-want)>0.12) voc.currentTime=Math.max(0,want); requestAnimationFrame(sync); };
+  requestAnimationFrame(sync);
+};
+au.addEventListener("pause",()=>{ voc.pause(); $("listen").textContent="Kuuntele"; });
+$("vol").oninput=()=>{ voc.volume=Math.min(1,+$("vol").value); };
+$("dl").onclick=async()=>{
+  if(!recBlob) return;
+  setStatus("Muunnetaan WAV-muotoon...");
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const buf=await ac.decodeAudioData(await recBlob.arrayBuffer());
+    const sr=buf.sampleRate, pad=Math.round(recStartAudioTime*sr);
+    const n=buf.length+pad, ch=buf.getChannelData(0);
+    const out=new Int16Array(n); for(let i=0;i<buf.length;i++){ const v=Math.max(-1,Math.min(1,ch[i])); out[pad+i]=v<0?v*32768:v*32767; }
+    const wav=new ArrayBuffer(44+n*2), dv=new DataView(wav); const W=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i));};
+    W(0,"RIFF"); dv.setUint32(4,36+n*2,true); W(8,"WAVE"); W(12,"fmt "); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+    dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true); W(36,"data"); dv.setUint32(40,n*2,true);
+    new Int16Array(wav,44).set(out);
+    const name=($("name").value||"laulaja").replace(/[^\w\u00C0-\u017F-]+/g,"_");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([wav],{type:"audio/wav"})); a.download="eevu-okei-laulu-"+name+".wav"; a.click();
+    setStatus("WAV ladattu: "+a.download+". Lähetä se Antille.");
+  }catch(e){ const a=document.createElement("a"); a.href=voc.src; a.download="eevu-okei-laulu.webm"; a.click(); setStatus("WAV-muunnos ei onnistunut, ladattiin alkuperäinen äänitys."); }
+};
+
+status();
+loadStored().then(f=>{ if(f) useFile(f); });
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
